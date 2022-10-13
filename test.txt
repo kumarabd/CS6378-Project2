@@ -1,0 +1,11 @@
+# This file will consist n+1 lines
+# Number of nodes (n), mean value of inter-delay request, mean value of cs-execution time, number of requests per node
+6, 2, 4, 1
+
+# Node ID, Host name, port
+0 localhost 8110
+1 localhost 8111 
+2 localhost 8112 
+3 localhost 8113 
+4 localhost 8114 
+5 localhost 8115
