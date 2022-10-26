@@ -17,7 +17,7 @@ int str_to_int(string s){
 ReadConfig::ReadConfig() {};
 
 void ReadConfig::read_config() {
-    ifstream testFile("test.txt");
+    ifstream testFile("config.txt");
     if (testFile.is_open()){
         while(getline(testFile, line)){
             line.erase(remove_if(line.begin(), line.end(), ::isspace),line.end());

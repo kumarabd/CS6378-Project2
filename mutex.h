@@ -6,9 +6,9 @@
 
 int generate_exponential_random(int mean);
 
-class MEService {
+class Mutex {
     public:
-        MEService();
-        void cs_enter();
-        void cs_leave();
+        Mutex();
+        void cs_enter(int process_id);
+        void cs_leave(int process_id);
 };

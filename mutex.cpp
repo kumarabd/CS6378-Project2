@@ -1,4 +1,4 @@
-#include "MEService.h"
+#include "mutex.h"
 
 int generate_exponential_random(int mean) {
     double const mean_new = mean;
@@ -9,6 +9,11 @@ int generate_exponential_random(int mean) {
     return num(gen);
 }
 
-MEService::MEService() {}
-void MEService::cs_enter() {}
-void MEService::cs_leave() {}
+Mutex::Mutex() {}
+void Mutex::cs_enter(int process_id) {
+    // Permission to enter CS for a process
+}
+
+void Mutex::cs_leave(int process_id) {
+    // Inform the service that the process has finished execution
+}
