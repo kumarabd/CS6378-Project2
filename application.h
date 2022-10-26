@@ -4,6 +4,10 @@
 #include <list>
 #include "mutex.h"
 #include "channel.h"
+typedef struct {
+    int id;
+    struct sockaddr_in address;
+} recepient;
 
 enum MessageType {
     REQUEST=0,
@@ -19,22 +23,26 @@ typedef struct {
 
 class Application {
     public:
-        virtual void process_message(message msg);
 };
 
 class Lamport {
     private:
+        Channel channel;
+        int nr;
         int id;
+        std::vector<recepient> recepients;
     public:
         std::list<int> reply_pending;
         Lamport();
-        Lamport(int id);
+        Lamport(int id, Channel channel, int nr);
+        void cs_enter(clock_t time);
+        void cs_leave();
         void process_message(message msg);
+        void listen();
 };
 
-class RicartAgarwala {
-    public:
-        RicartAgarwala();
-        RicartAgarwala(int id);
-        void process_message(message msg);
-};
+//class RicartAgarwala {
+//    public:
+//        RicartAgarwala();
+//        RicartAgarwala(int id);
+//};

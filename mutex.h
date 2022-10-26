@@ -1,14 +1,12 @@
-#include <random>
-#include <stdio.h>
-#include <map>
 #include <iostream>
-#include <iomanip>
+#include <random>
 
 int generate_exponential_random(int mean);
 
 class Mutex {
+    private:
+        
     public:
         Mutex();
-        void cs_enter(int process_id);
-        void cs_leave(int process_id);
+        void execute_cs();
 };

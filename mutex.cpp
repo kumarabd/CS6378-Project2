@@ -9,11 +9,8 @@ int generate_exponential_random(int mean) {
     return num(gen);
 }
 
-Mutex::Mutex() {}
-void Mutex::cs_enter(int process_id) {
-    // Permission to enter CS for a process
-}
+Mutex::Mutex() {};
 
-void Mutex::cs_leave(int process_id) {
-    // Inform the service that the process has finished execution
-}
+void Mutex::execute_cs() {
+    
+};
