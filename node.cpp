@@ -27,24 +27,28 @@ Node::Node(int id, std::string h, int p, int dMean, int cMean, int nr) {
 }
 
 void Node::start_clock() {
-    //std::clock_t prev_clock = std::clock();
-    //while(this->nr > 0) {
-    //    std::clock_t curr_clock = std::clock();
-    //    float diff = std::round((float)(curr_clock - prev_clock)/CLOCKS_PER_SEC);
-    //    // Request CS if difference in current clock value and previous clock is d
-    //    if((int)diff == this->d) {
-    //        printf("clocking time curr: %lu\n", curr_clock);
-    //        // Request CS
-    //        message msg = this->application.request_cs(this->get_id(), &this->mutex);
-    //        // Broadcast request to other nodes
-    //        for(Node * target_node: this->neighbours) {
-    //            this->send_message(target_node, msg);
-    //            this->application.reply_pending.push_back(target_node->get_id());
-    //        }
-    //        this->nr--;
-    //        prev_clock = curr_clock;
-    //    }
-    //}
+    std::clock_t prev_clock = std::clock();
+    while(this->nr > 0) {
+        std::clock_t curr_clock = std::clock();
+        float diff = std::round((float)(curr_clock - prev_clock)/CLOCKS_PER_SEC);
+        // Request CS if difference in current clock value and previous clock is d
+        if((int)diff == this->d) {
+            printf("clocking time curr: %lu\n", curr_clock);
+            // Request CS
+            message msg = {
+                .source = this->id,
+                .time = curr_clock,
+                .type = REQUEST,
+            };
+            // Broadcast request to other nodes
+            for(Node * target_node: this->neighbours) {
+                this->send_message(target_node, msg);
+                this->application.reply_pending.push_back(target_node->get_id());
+            }
+            this->nr--;
+            prev_clock = curr_clock;
+        }
+    }
 }
 
 void Node::listen() {

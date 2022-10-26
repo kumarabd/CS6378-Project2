@@ -1,23 +1,9 @@
 #include "application.h"
 
-Lamport::Lamport() {}
+Lamport::Lamport() {};
 
-void Lamport::request_cs(int id, Mutex * service) {
-    //// Broadcast request to all nodes
-    //printf("Requesting cs\n");
-    //service->cs_enter(id);
-    //for(int target_node: this.neighbours) {
-    //    this.send_message(target_node, msg);
-    //    this->reply_pending.push_back(target_id);
-    //}
-    ////time = clock()
-    ////msg = { curr_node.get_id(), REQUEST, time}
-    //pair<int, int> p({time, curr_node.get_id})
-    ////this.queue.push(p)
-}
-
-void Lamport::execute_cs(int duration) {
-    usleep(duration);
+Lamport::Lamport(int id) {
+    this->id = id;
 }
 
 void Lamport::process_message(message msg) {

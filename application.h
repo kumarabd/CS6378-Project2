@@ -14,30 +14,27 @@ enum MessageType {
 typedef struct {
     int source;
     MessageType type;
-    int time;
+    clock_t time;
 } message;
 
 class Application {
     public:
-        virtual void request_cs(int id, Mutex * service);
-        virtual void execute_cs(int duration);
         virtual void process_message(message msg);
 };
 
 class Lamport {
     private:
+        int id;
     public:
         std::list<int> reply_pending;
         Lamport();
-        void request_cs(int id, Mutex * service);
-        void execute_cs(int duration);
+        Lamport(int id);
         void process_message(message msg);
 };
 
 class RicartAgarwala {
     public:
         RicartAgarwala();
-        void request_cs(int id, Mutex * service);
-        void execute_cs(int duration);
+        RicartAgarwala(int id);
         void process_message(message msg);
 };
