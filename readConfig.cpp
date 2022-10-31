@@ -20,16 +20,16 @@ void ReadConfig::read_config() {
     ifstream testFile("config.txt");
     if (testFile.is_open()){
         while(getline(testFile, line)){
-            line.erase(remove_if(line.begin(), line.end(), ::isspace),line.end());
+            //line.erase(remove_if(line.begin(), line.end(), ::isspace),line.end());
             if(line[0] == '#' || line.empty()) {
                     continue;
             }
 
             stringstream ss(line);
-            getline(ss, str_nodestr, ',');
-            getline(ss, str_dMean, ',');
-            getline(ss, str_cMean, ',');
-            getline(ss, str_nr, ',');
+            getline(ss, str_nodestr, ' ');
+            getline(ss, str_dMean, ' ');
+            getline(ss, str_cMean, ' ');
+            getline(ss, str_nr, ' ');
 
             node = str_to_int(str_nodestr);
             dMean = str_to_int(str_dMean);

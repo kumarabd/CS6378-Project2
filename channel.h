@@ -5,7 +5,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <cstring>
-#define clock_value 1000000
 
 typedef struct {
     int sock;

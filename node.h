@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <queue>
 #include <ctime>
+#include <future>
 #include "application.h"
 
 class Node {
@@ -20,7 +21,7 @@ class Node {
 
     public:
         Node();
-        Node(int id, std::string h, int p, int d, int c, int nr);
+        Node(int id, std::vector<std::string> h, std::vector<int> p, int d, int c, int nr);
         void start();
         int get_id();
         void info();

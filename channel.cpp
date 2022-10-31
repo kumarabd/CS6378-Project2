@@ -1,4 +1,5 @@
 #include "channel.h"
+#include <stdio.h>
 
 
 Channel::Channel() {};
@@ -9,18 +10,19 @@ Channel::Channel(std::string h, int p) {
        perror("socket failed");
        exit(EXIT_FAILURE);
     }
-
     this->address.sin_family = AF_INET;
-    //socket_address.sin_addr.s_addr = INADDR_ANY;
+    this->address.sin_addr.s_addr = INADDR_ANY; // Use local loop back
     this->address.sin_port = htons(p);
 
-    hostent* hostname = gethostbyname(h.c_str());
-    std::string st = std::string(inet_ntoa(**(in_addr**)hostname->h_addr_list));
-    //inet_aton(st.c_str(), &socket_address.sin_addr);
-    if (inet_aton(st.c_str(), &this->address.sin_addr) < 0) {
-            perror("Address not recognized");
-            exit(EXIT_FAILURE);
-    }
+    //// Convert hostname to address
+    //struct hostent* host = gethostbyname(h.c_str());
+    //unsigned long int addr=inet_addr(host);
+    //host = gethostbyaddr(&addr, sizeof(addr), AF_INET);
+    //std::string st = std::string(inet_ntoa(**(in_addr**)host->h_addr_list));
+    //if (inet_aton(st.c_str(), &this->address.sin_addr) < 0) {
+    //        perror("Address not recognized");
+    //        exit(EXIT_FAILURE);
+    //}
 
     if (bind(this->server_fd, (struct sockaddr*) &this->address, sizeof(this->address)) < 0) {
         perror("bind failed");
@@ -34,7 +36,7 @@ int Channel::fd() {
 
 void Channel::start_socket() {
     // 3 is the max queue limit
-    if (listen(this->server_fd, 3) < 0) {
+    if (listen(this->server_fd, 10) < 0) {
         perror("listening");
         exit(EXIT_FAILURE);
     }
@@ -49,7 +51,7 @@ void Channel::send_socket(struct sockaddr_in serv_addr, std::string msg) {
  
     // Convert IPv4 and IPv6 addresses from text to binary
     // form
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "0.0.0.0", &serv_addr.sin_addr) <= 0) {
         perror("\nInvalid address/ Address not supported \n");
         exit(EXIT_FAILURE);
     }

@@ -14,6 +14,9 @@ int main(int argc, char** argv)
     config.read_config();
 
     printf("Creating node: %d\n", atoi(argv[1]));
-    Node addr = Node(atoi(argv[1]), config.hostNames[atoi(argv[1])], config.ports[atoi(argv[1])], config.dMean, config.cMean, config.nr);
+    Node addr = Node(atoi(argv[1]), config.hostNames, config.ports, config.dMean, config.cMean, config.nr);
+    printf("Running: %d\n", atoi(argv[1]));
+    addr.start();
+    printf("Exiting: %d\n", atoi(argv[1]));
     return 0;
 }

@@ -11,9 +11,10 @@ std::string convertToString(char* a, int size) {
 
 Lamport::Lamport() {};
 
-Lamport::Lamport(int id, Channel channel, int nr) {
+Lamport::Lamport(int id, Channel channel, std::vector<recepient> rcpts) {
+    this->id = id;
     this->channel = channel;
-    this->nr = nr;
+    this->recepients = rcpts;
 }
 
 void Lamport::process_message(message msg) {
@@ -22,7 +23,10 @@ void Lamport::process_message(message msg) {
         case REQUEST:
             // If it is in the cs then put in priority queue
             // If not then send a reply
-            printf("%u message\n", msg.type);
+            printf("Request message received on node %d from node %d at %lu\n", this->id, msg.source, msg.time);
+            // Add to priority queue
+            //queue_object obj = { .id=msg.source, .time=msg.time};
+            //this->pq.push(obj);
             break;
         case REPLY:
             // Remove the node from reply queue
@@ -30,8 +34,8 @@ void Lamport::process_message(message msg) {
             printf("%u message\n", msg.type);
             break;
         case RELEASE:
-            // Remove the node from the priority queue
             printf("%u message\n", msg.type);
+            // Remove the node from the priority queue
             break;
         default:
             printf("message type invalid: %u\n", msg.type);
@@ -43,13 +47,19 @@ void Lamport::cs_enter(clock_t time) {
     message msg = {.source = this->id, .type = REQUEST, .time = time};
     std::string m = std::to_string(this->id) +"///";
     m = m + std::to_string(msg.type);
+    m = m + "///";
     m = m + std::to_string(msg.time);
 
     // Broadcast request to other nodes
     for(recepient target: this->recepients) {
+        printf("Sending from node %d to node %d at %lu\n", this->id, target.id, time);
         this->channel.send_socket(target.address, m);
         this->reply_pending.push_back(target.id);
     }
+
+    // Add the timestamp to the priority queue
+    queue_object obj = { .id=this->id, .time=time };
+    this->pq.push(obj);
 }
 
 void Lamport::cs_leave() {
@@ -60,8 +70,7 @@ void Lamport::listen() {
     int newSocket;
     this->channel.start_socket();
     // Listen for messages
-    while(this->nr > 0) {
-        printf("listening\n");
+    while(1) {
         // Receive request from other nodes
         sockaddr_in addr = this->channel.address;
         socklen_t addr_size = sizeof(addr);
@@ -74,14 +83,15 @@ void Lamport::listen() {
         std::string delimiter = "///";
         std::string data = convertToString(buffer, sizeof(buffer)/sizeof(char));
         std::string source = data.substr(0, data.find(delimiter));
-        std::string type = data.substr(1, data.find(delimiter));
-        std::string time = data.substr(2, data.find(delimiter));
-        printf("message received on node %s from node %d for time %s", source.c_str(), this->id, time.c_str());
+        data.erase(0, data.find(delimiter) + delimiter.length());
+        std::string type = data.substr(0, data.find(delimiter));
+        data.erase(0, data.find(delimiter) + delimiter.length());
+        std::string time = data.substr(0, data.find(delimiter));
         // eg: "0///<data>///0"
         // Active node send message to random node
         // if not then
         // Remove the node from network if the node reach maxNumber of messages
         message msg = { atoi(source.c_str()), static_cast<MessageType>(atoi(type.c_str())), (clock_t)std::stod(time.c_str()) };
-        this->process_message(msg);
+        this->process_message(msg); // Make this future
     }
 }

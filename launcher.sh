@@ -19,5 +19,8 @@ done < config.txt
 for i in $(seq 1 $n)
 do
     make ID=$i
-    ./build/node-$i $i
+done
+for i in $(seq 1 $n)
+do
+    ./build/node-$i $i &
 done
