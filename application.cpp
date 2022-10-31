@@ -15,31 +15,54 @@ Lamport::Lamport(int id, Channel channel, std::vector<recepient> rcpts) {
     this->id = id;
     this->channel = channel;
     this->recepients = rcpts;
+    this->in_cs = false;
 }
 
-void Lamport::process_message(message msg) {
+void Lamport::send_reply(int target, message msg) {
+    std::string m = std::to_string(msg.source) +"///";
+    m = m + std::to_string(msg.type);
+    m = m + "///";
+    m = m + std::to_string(msg.time);
+    this->channel.send_socket(this->recepients[target-1].address, m);
+}
+
+bool Lamport::process_message(message msg) {
     // For modified: remove the node from reply queue here
     switch(msg.type) {
-        case REQUEST:
+        case REQUEST: {
             // If it is in the cs then put in priority queue
             // If not then send a reply
             printf("Request message received on node %d from node %d at %lu\n", this->id, msg.source, msg.time);
             // Add to priority queue
-            //queue_object obj = { .id=msg.source, .time=msg.time};
-            //this->pq.push(obj);
+            queue_object obj = { .id=msg.source, .time=msg.time};
+            this->pq.push(obj);
+            if(!this->in_cs) {
+                message mobj = { .source=this->id, .type=REPLY, .time=clock() };
+                this->send_reply(msg.source, mobj);
+            }
             break;
-        case REPLY:
+        }
+        case REPLY: {
             // Remove the node from reply queue
             this->reply_pending.remove(msg.source);
-            printf("%u message\n", msg.type);
+            printf("Reply message received on node %d from node %d at %lu\n", this->id, msg.source, msg.time);
             break;
-        case RELEASE:
-            printf("%u message\n", msg.type);
+        }
+        case RELEASE: {               
+            this->pq.pop();
+            //this->reply_pending.remove(msg.source);
+            printf("Release message received on node %d from node %d at %lu\n", this->id, msg.source, msg.time);
             // Remove the node from the priority queue
             break;
+        }
         default:
             printf("message type invalid: %u\n", msg.type);
     }
+    // Condition to enter CS
+    if(!this->reply_pending.size() && this->pq.top().id == this->id) {
+        return true;
+    }
+    return false;
 }
 
 void Lamport::cs_enter(clock_t time) {
@@ -52,7 +75,7 @@ void Lamport::cs_enter(clock_t time) {
 
     // Broadcast request to other nodes
     for(recepient target: this->recepients) {
-        printf("Sending from node %d to node %d at %lu\n", this->id, target.id, time);
+        printf("Sending request from node %d to node %d at %lu\n", this->id, target.id, time);
         this->channel.send_socket(target.address, m);
         this->reply_pending.push_back(target.id);
     }
@@ -60,9 +83,26 @@ void Lamport::cs_enter(clock_t time) {
     // Add the timestamp to the priority queue
     queue_object obj = { .id=this->id, .time=time };
     this->pq.push(obj);
+
+    while(!this->in_cs) {};
 }
 
 void Lamport::cs_leave() {
+    // Pop them off the queue
+    this->pq.pop();
+    
+    // Construct message
+    message msg = {.source = this->id, .type = RELEASE, .time = clock()};
+    std::string m = std::to_string(this->id) +"///";
+    m = m + std::to_string(msg.type);
+    m = m + "///";
+    m = m + std::to_string(msg.time);
+
+    // Send release to all candidates
+    for(recepient target: this->recepients) {
+        printf("Sending release from node %d to node %d at %lu\n", this->id, target.id, msg.time);
+        this->channel.send_socket(target.address, m);
+    }
 }
 
 void Lamport::listen() {
@@ -92,6 +132,10 @@ void Lamport::listen() {
         // if not then
         // Remove the node from network if the node reach maxNumber of messages
         message msg = { atoi(source.c_str()), static_cast<MessageType>(atoi(type.c_str())), (clock_t)std::stod(time.c_str()) };
-        this->process_message(msg); // Make this future
+        bool result = this->process_message(msg); // Make this future
+        if(result) {
+            // Enter CS condition
+            this->in_cs = true;
+        }
     }
 }

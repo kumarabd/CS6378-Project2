@@ -27,11 +27,10 @@ Node::Node(int id, std::vector<std::string> h, std::vector<int> p, int dMean, in
         } 
     }
     this->application = Lamport(id, channel, rcpts);
-    this->mutex = Mutex();
+    this->mutex = Mutex(id, generate_exponential_random(cMean));
 
     // Assign random values for d and c
     this->d = generate_exponential_random(dMean);
-    this->c = generate_exponential_random(cMean);
 }
 
 
@@ -46,7 +45,8 @@ void Node::start() {
 
     // Start requests
     std::clock_t prev_clock = std::clock();
-    this->d = this->d*CLOCKS_PER_SEC + prev_clock;
+    this->payload = prev_clock; // Use this to cover up the time difference between when the program started and the time when this function starts
+    this->d = this->d*CLOCKS_PER_SEC;
     while(this->nr > 0) {
         std::clock_t curr_clock = std::clock();
         unsigned long diff = curr_clock - prev_clock;
@@ -55,7 +55,7 @@ void Node::start() {
         if(diff/10 == (unsigned long)this->d/10) {
             printf("requesting at: %lu\n", curr_clock);
             this->application.cs_enter(curr_clock);
-            this->mutex.execute_cs(); // pending
+            this->mutex.execute_cs(this->payload); // pending
             this->application.cs_leave(); // pending
             this->nr--;
             prev_clock = curr_clock;

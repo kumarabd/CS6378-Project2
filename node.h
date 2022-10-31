@@ -15,6 +15,7 @@ class Node {
         int d; // inter-request delay
         int c; // cs-execution time
         int nr; // number of requests
+        std::clock_t payload; // The dely between the process and the request starts
         std::vector<Node *> neighbours;
         Lamport application; // Top Module
         Mutex mutex; // Bottom Module 

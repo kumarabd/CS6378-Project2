@@ -49,14 +49,15 @@ class Lamport {
         int id;
         std::vector<recepient> recepients;
         std::priority_queue<queue_object, std::vector<queue_object>, Compare> pq;
-        //std::priority_queue<queue_object> pq;
+        void send_reply(int target, message msg);
     public:
         std::list<int> reply_pending;
+        bool in_cs;
         Lamport();
         Lamport(int id, Channel channel, std::vector<recepient> rcpts);
         void cs_enter(clock_t time);
         void cs_leave();
-        void process_message(message msg);
+        bool process_message(message msg);
         void listen();
 };
 

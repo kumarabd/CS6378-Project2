@@ -11,6 +11,19 @@ int generate_exponential_random(int mean) {
 
 Mutex::Mutex() {};
 
-void Mutex::execute_cs() {
-    
+Mutex::Mutex(int id, int c) {
+    this->id = id;
+    this->c = c;
+};
+
+void Mutex::execute_cs(std::clock_t payload) {
+    printf("%d entering CS\n", this->id);
+    // Use payload to cover up the time difference between when the program started and the time when this function starts
+    this->c = this->c*CLOCKS_PER_SEC;
+    std::clock_t prev_clock = std::clock();
+    unsigned long diff = 0;
+    while(diff/10 == (unsigned long)this->c/10) {
+        std::clock_t curr_clock = std::clock();
+        unsigned long diff = curr_clock - prev_clock;
+    }
 };
