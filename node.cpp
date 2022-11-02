@@ -7,7 +7,7 @@ Node::Node() {};
 Node::Node(int id, std::vector<std::string> h, std::vector<int> p, int dMean, int cMean, int nr) {
     this->id = id;
     this->nr = nr;
-    Channel channel = Channel(h[id-1], p[id-1]);
+    this->channel = Channel(h[id-1], p[id-1]);
 
     // Create Mutual Exclusion service
     std::vector<recepient> rcpts;
@@ -26,7 +26,8 @@ Node::Node(int id, std::vector<std::string> h, std::vector<int> p, int dMean, in
             rcpts.push_back(member);
         } 
     }
-    this->application = Lamport(id, channel, rcpts);
+    this->application = Lamport(id, this->channel, rcpts);
+    this->neighbours = rcpts;
     this->mutex = Mutex(id, generate_exponential_random(cMean));
 
     // Assign random values for d and c
@@ -39,9 +40,22 @@ int Node::get_id() {
 }
 
 void Node::start() {
+
     // Start the application
     std::future<void> ft = std::async(std::launch::async, &Lamport::listen, this->application);
     pending_futures.push_back(std::move(ft));
+
+    // Check if all the nodes are running
+    int nodes_ready = 0;
+    while(nodes_ready != this->neighbours.size()) {
+        for(int i=0; i<this->neighbours.size(); i++) {
+            int status = this->channel.if_socket(this->neighbours[i].address);
+            if(status == 0) {
+                nodes_ready++;
+            }
+        }
+        sleep(3);
+    }
 
     // Start requests
     std::clock_t prev_clock = std::clock();
@@ -53,7 +67,7 @@ void Node::start() {
         // Request CS if difference in current clock value and previous clock is d
         // /10 because the microseconds are skipped so fast
         if(diff/10 == (unsigned long)this->d/10) {
-            printf("requesting at: %lu\n", curr_clock);
+            printf("requesting for node %d at: %lu\n",this->id, curr_clock);
             this->application.cs_enter(curr_clock);
             this->mutex.execute_cs(this->payload); // pending
             this->application.cs_leave(); // pending

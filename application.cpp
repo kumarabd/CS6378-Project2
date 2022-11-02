@@ -84,7 +84,8 @@ void Lamport::cs_enter(clock_t time) {
     queue_object obj = { .id=this->id, .time=time };
     this->pq.push(obj);
 
-    while(!this->in_cs) {};
+    printf("Node %d is waiting to enter CS\n", this->id);
+    while(!this->in_cs) {}
 }
 
 void Lamport::cs_leave() {
@@ -103,6 +104,10 @@ void Lamport::cs_leave() {
         printf("Sending release from node %d to node %d at %lu\n", this->id, target.id, msg.time);
         this->channel.send_socket(target.address, m);
     }
+    
+    // Set flag back to false
+    this->in_cs = false;
+    
 }
 
 void Lamport::listen() {
@@ -127,6 +132,7 @@ void Lamport::listen() {
         std::string type = data.substr(0, data.find(delimiter));
         data.erase(0, data.find(delimiter) + delimiter.length());
         std::string time = data.substr(0, data.find(delimiter));
+        printf("Node %d received an event from %s\n", this->id, source.c_str());
         // eg: "0///<data>///0"
         // Active node send message to random node
         // if not then

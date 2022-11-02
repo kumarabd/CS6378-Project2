@@ -16,11 +16,12 @@ class Node {
         int c; // cs-execution time
         int nr; // number of requests
         std::clock_t payload; // The dely between the process and the request starts
-        std::vector<Node *> neighbours;
+        std::vector<recepient> neighbours;
         Lamport application; // Top Module
         Mutex mutex; // Bottom Module 
 
     public:
+        Channel channel;
         Node();
         Node(int id, std::vector<std::string> h, std::vector<int> p, int d, int c, int nr);
         void start();

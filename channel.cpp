@@ -43,8 +43,8 @@ void Channel::start_socket() {
 }
 
 void Channel::send_socket(struct sockaddr_in serv_addr, std::string msg) {
-    int sock = 0, valread, client_fd;
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    int valread, client_fd;
+    if ((this->client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("\n Socket creation error \n");
         exit(EXIT_FAILURE);
     }
@@ -56,10 +56,28 @@ void Channel::send_socket(struct sockaddr_in serv_addr, std::string msg) {
         exit(EXIT_FAILURE);
     }
  
-    if ((client_fd = connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0) {
+    if ((client_fd = connect(this->client_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0) {
         perror("\nConnection Failed \n");
         exit(EXIT_FAILURE);
     }
-    send(sock, msg.c_str(), strlen(msg.c_str()), 0);
+    send(this->client_sock, msg.c_str(), strlen(msg.c_str()), 0);
     //close(client_fd);
+}
+
+int Channel::if_socket(struct sockaddr_in client_addr) {
+    this->client_sock = 0;
+    if ((this->client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("\n Socket creation error \n");
+        exit(EXIT_FAILURE);
+    }
+ 
+    // Convert IPv4 and IPv6 addresses from text to binary
+    // form
+    if (inet_pton(AF_INET, "0.0.0.0", &client_addr.sin_addr) <= 0) {
+        perror("\nInvalid address/ Address not supported \n");
+        exit(EXIT_FAILURE);
+    }
+
+    int status = connect(this->client_sock, (struct sockaddr*)&client_addr, sizeof(client_addr));
+    return status;
 }

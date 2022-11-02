@@ -16,6 +16,7 @@ class Channel {
     private:
         int size;
         int server_fd;
+        int client_sock;
     public:
         struct sockaddr_in address;
         Channel();
@@ -23,4 +24,5 @@ class Channel {
         void start_socket();
         void send_socket(struct sockaddr_in serv_addr, std::string msg);
         int fd();
+        int if_socket(struct sockaddr_in serv_addr);
 };

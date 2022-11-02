@@ -61,8 +61,18 @@ class Lamport {
         void listen();
 };
 
-//class RicartAgarwala {
-//    public:
-//        RicartAgarwala();
-//        RicartAgarwala(int id);
-//};
+class RicartAgarwala {
+    private:
+        Channel channel;
+        int id;
+        std::vector<recepient> recepients;
+        void send_reply(int target, message msg);
+    public:
+        bool in_cs;
+        RicartAgarwala();
+        RicartAgarwala(int id, Channel channel, std::vector<recepient> rcpts);
+        void cs_enter(clock_t time);
+        void cs_leave();
+        bool process_message(message msg);
+        void listen();
+};
