@@ -37,6 +37,7 @@ bool Lamport::process_message(message msg) {
             queue_object obj = { .id=msg.source, .time=msg.time};
             this->pq.push(obj);
             if(!this->in_cs) {
+                printf("Sending Reply from %d to %d at %lu\n", this->id, msg.source, msg.time);
                 message mobj = { .source=this->id, .type=REPLY, .time=clock() };
                 this->send_reply(msg.source, mobj);
             }
@@ -52,14 +53,14 @@ bool Lamport::process_message(message msg) {
             this->pq.pop();
             //this->reply_pending.remove(msg.source);
             printf("Release message received on node %d from node %d at %lu\n", this->id, msg.source, msg.time);
-            // Remove the node from the priority queue
             break;
         }
         default:
             printf("message type invalid: %u\n", msg.type);
     }
     // Condition to enter CS
-    if(!this->reply_pending.size() && this->pq.top().id == this->id) {
+    if(this->reply_pending.size() == 0 && (this->pq.size() == 0 || this->pq.top().id == this->id)) {
+        printf("returning true for node %d\n", this->id);
         return true;
     }
     return false;
@@ -85,7 +86,10 @@ void Lamport::cs_enter(clock_t time) {
     this->pq.push(obj);
 
     printf("Node %d is waiting to enter CS\n", this->id);
-    while(!this->in_cs) {}
+    while(!this->in_cs) {
+        printf("looping for %d, condition %d\n", this->id, this->in_cs);
+    }
+    printf("Node %d is starting to enter CS\n", this->id);
 }
 
 void Lamport::cs_leave() {
@@ -107,7 +111,6 @@ void Lamport::cs_leave() {
     
     // Set flag back to false
     this->in_cs = false;
-    
 }
 
 void Lamport::listen() {

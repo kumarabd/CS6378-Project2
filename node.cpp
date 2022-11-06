@@ -45,22 +45,23 @@ void Node::start() {
     std::future<void> ft = std::async(std::launch::async, &Lamport::listen, this->application);
     pending_futures.push_back(std::move(ft));
 
-    // Check if all the nodes are running
-    int nodes_ready = 0;
-    while(nodes_ready != this->neighbours.size()) {
-        for(int i=0; i<this->neighbours.size(); i++) {
-            int status = this->channel.if_socket(this->neighbours[i].address);
-            if(status == 0) {
-                nodes_ready++;
-            }
-        }
-        sleep(3);
-    }
+    //// Check if all the nodes are running
+    //int nodes_ready = 0;
+    //while(nodes_ready != this->neighbours.size()) {
+    //    for(int i=0; i<this->neighbours.size(); i++) {
+    //        int status = this->channel.if_socket(this->neighbours[i].address);
+    //        if(status == 0) {
+    //            nodes_ready++;
+    //        }
+    //    }
+    //    sleep(3);
+    //}
+    sleep(5);
 
     // Start requests
-    std::clock_t prev_clock = std::clock();
-    this->payload = prev_clock; // Use this to cover up the time difference between when the program started and the time when this function starts
+    this->payload = std::clock(); // Use this to cover up the time difference between when the program started and the time when this function starts
     this->d = this->d*CLOCKS_PER_SEC;
+    std::clock_t prev_clock = std::clock();
     while(this->nr > 0) {
         std::clock_t curr_clock = std::clock();
         unsigned long diff = curr_clock - prev_clock;

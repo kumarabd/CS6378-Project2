@@ -43,8 +43,8 @@ void Channel::start_socket() {
 }
 
 void Channel::send_socket(struct sockaddr_in serv_addr, std::string msg) {
-    int valread, client_fd;
-    if ((this->client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    this->client_socks[serv_addr.sin_port] = 0;
+    if ((this->client_socks[serv_addr.sin_port] = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("\n Socket creation error \n");
         exit(EXIT_FAILURE);
     }
@@ -55,29 +55,30 @@ void Channel::send_socket(struct sockaddr_in serv_addr, std::string msg) {
         perror("\nInvalid address/ Address not supported \n");
         exit(EXIT_FAILURE);
     }
- 
-    if ((client_fd = connect(this->client_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0) {
+
+    int status = connect(this->client_socks[serv_addr.sin_port], (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    if(status < 0) {
         perror("\nConnection Failed \n");
         exit(EXIT_FAILURE);
     }
-    send(this->client_sock, msg.c_str(), strlen(msg.c_str()), 0);
+    send(this->client_socks[serv_addr.sin_port], msg.c_str(), strlen(msg.c_str()), 0);
     //close(client_fd);
 }
 
-int Channel::if_socket(struct sockaddr_in client_addr) {
-    this->client_sock = 0;
-    if ((this->client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+int Channel::if_socket(struct sockaddr_in serv_addr) {
+    this->client_socks[serv_addr.sin_port] = 0;
+    if ((this->client_socks[serv_addr.sin_port] = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("\n Socket creation error \n");
         exit(EXIT_FAILURE);
     }
  
     // Convert IPv4 and IPv6 addresses from text to binary
     // form
-    if (inet_pton(AF_INET, "0.0.0.0", &client_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "0.0.0.0", &serv_addr.sin_addr) <= 0) {
         perror("\nInvalid address/ Address not supported \n");
         exit(EXIT_FAILURE);
     }
 
-    int status = connect(this->client_sock, (struct sockaddr*)&client_addr, sizeof(client_addr));
+    int status = connect(this->client_socks[serv_addr.sin_port], (struct sockaddr*)&serv_addr, sizeof(serv_addr));
     return status;
 }

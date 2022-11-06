@@ -2,9 +2,11 @@
 #include <sys/socket.h>
 #include <sys/types.h> 
 #include <netinet/in.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <cstring>
+#include <map>
 
 typedef struct {
     int sock;
@@ -16,7 +18,7 @@ class Channel {
     private:
         int size;
         int server_fd;
-        int client_sock;
+        std::map<in_port_t,int> client_socks;
     public:
         struct sockaddr_in address;
         Channel();
