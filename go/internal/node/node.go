@@ -1,14 +1,16 @@
 package node
 
 import (
+	"encoding/json"
 	"math"
 	"math/rand"
+	"net"
 	"time"
 
 	"github.com/kumarabd/CS6378-Project2/go/config"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
-	"github.com/kumarabd/CS6378-Project2/go/pkg/lamport"
 	mutex_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/mutex"
+	"github.com/kumarabd/CS6378-Project2/go/pkg/ricart"
 	"github.com/realnighthawk/bucky/logger"
 )
 
@@ -45,14 +47,16 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		}
 	}
 
-	app, err := lamport.New(id, neighbours, log)
+	app, err := ricart.New(id, neighbours, log)
 	if err != nil {
 		return nil, err
 	}
 
 	rand.Seed(time.Now().UnixNano())
 	delay := rand.ExpFloat64() * float64(cfg.IR)
+	delay = math.Floor(time.Duration(delay*1000000000).Seconds()*1000000) / 1000000
 	csTime := rand.ExpFloat64() * float64(cfg.CT)
+	csTime = math.Floor(time.Duration(csTime*1000000000).Seconds()*1000000) / 1000000
 
 	mutex, err := mutex_pkg.New(id, csTime)
 	if err != nil {
@@ -71,8 +75,6 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		neighbours:      neighbours,
 		avgResponseTime: 0.0,
 	}
-
-	node.delay = math.Floor(time.Duration(node.delay*1000000000).Seconds()*1000000) / 1000000
 
 	return &node, nil
 }
@@ -100,7 +102,9 @@ func (n *Node) Start() error {
 
 	// Start requests
 	n.log.Info("delay: ", n.delay)
+	n.log.Info("execution time: ", n.eTime)
 	startClock := time.Now()
+	n.application.SetClock(startClock)
 	prevClock := time.Now()
 	for n.numReq > 0 {
 		diff := math.Floor(time.Since(prevClock).Seconds()*1000000) / 1000000
@@ -127,8 +131,9 @@ func (n *Node) Start() error {
 
 	//// Send exit to neighbours
 	curr_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
+	n.avgResponseTime = math.Floor(time.Duration(n.avgResponseTime*1000000000).Seconds()*1000000) / 1000000
 	n.log.Info("finished at ", curr_clock)
-	n.log.Info("average response time:  ", math.Floor(time.Duration(n.avgResponseTime*1000000000).Seconds()*1000000)/1000000)
+	n.log.Info("average response time:  ", n.avgResponseTime)
 	<-stopChan
 	return nil
 }
@@ -140,7 +145,23 @@ func (n *Node) listen(ch chan struct{}) {
 			n.log.Error(err)
 			continue
 		}
-		go n.application.ProcessMessage(connection, n.numReq, ch)
+		go func(conn net.Conn) {
+			for {
+				buffer := make([]byte, 1024)
+				mLen, err := conn.Read(buffer)
+				if err != nil {
+					n.log.Error(err)
+					return
+				}
+
+				msg := application_pkg.Message{}
+				if err = json.Unmarshal(buffer[:mLen], &msg); err != nil {
+					n.log.Error(err)
+					continue
+				}
+				go n.application.ProcessMessage(&msg, n.numReq, ch)
+			}
+		}(connection)
 	}
 }
 

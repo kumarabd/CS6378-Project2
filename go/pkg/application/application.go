@@ -2,6 +2,7 @@ package application
 
 import (
 	"net"
+	"time"
 
 	"github.com/kumarabd/CS6378-Project2/go/config"
 )
@@ -15,5 +16,6 @@ type Neighbour struct {
 type Application interface {
 	CS_Enter(time float64)
 	CS_Leave()
-	ProcessMessage(conn net.Conn, nr int, stopCh chan struct{})
+	ProcessMessage(msg *Message, nr int, stopCh chan struct{})
+	SetClock(clock time.Time)
 }

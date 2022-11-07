@@ -17,7 +17,7 @@ type Message struct {
 	Time   float64     `json:"time"`
 }
 
-func (m Message) Encode() []byte {
+func (m *Message) Encode() []byte {
 	mBytes, err := json.Marshal(m)
 	if err != nil {
 		mBytes = []byte("Error")
@@ -25,7 +25,7 @@ func (m Message) Encode() []byte {
 	return mBytes
 }
 
-func (m Message) Decode(data []byte) error {
+func (m *Message) Decode(data []byte) error {
 	mObj := Message{}
 	err := json.Unmarshal(data, &mObj)
 	if err != nil {
