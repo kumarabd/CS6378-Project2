@@ -22,8 +22,9 @@ void Mutex::execute_cs(std::clock_t payload) {
     std::clock_t prev_clock = std::clock();
     unsigned long diff = 0;
     printf("Node %d is entering CS at %lu\n", this->id, prev_clock);
+    std::clock_t curr_clock;
     while(diff/10 == (unsigned long)this->c/10) {
-        std::clock_t curr_clock = std::clock();
+        curr_clock = std::clock();
         unsigned long diff = curr_clock - prev_clock;
     }
     printf("Node %d is leaving CS at %lu\n", this->id, curr_clock);

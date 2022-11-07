@@ -14,6 +14,7 @@ enum MessageType {
     REQUEST=0,
     REPLY=1,
     RELEASE=2,
+    DEF_REPLY=3
 };
 
 typedef struct {
@@ -66,6 +67,10 @@ class RicartAgarwala {
         Channel channel;
         int id;
         std::vector<recepient> recepients;
+        clock_t csIntendTime;
+        bool unfulfilled_request;
+        std::list<int> def_reply_pending;
+        std::vector<recepient> def_release_send_list;
         void send_reply(int target, message msg);
     public:
         bool in_cs;
