@@ -241,7 +241,7 @@ void RicartAgarwala::cs_leave() {
     }
 
     // clear def_release_send_list for next cs entry
-    def_release_send_list.clear();
+    this->def_release_send_list.clear();
     
     // Set flag back to false
     this->in_cs = false;
@@ -253,8 +253,8 @@ bool RicartAgarwala::process_message(message msg) {
         case REQUEST: {
             printf("Request message received on node %d from node %d at %lu\n", this->id, msg.source, msg.time);
             // Send reply or add to def_release_send_list
-            if (unfulfilled_request) {
-                if (csIntendTime > msg.time) {
+            if (this->unfulfilled_request) {
+                if (this->csIntendTime > msg.time) {
                     printf("Sending Reply from %d to %d at %lu\n", this->id, msg.source, msg.time);
                     message mobj = { .source=this->id, .type=DEF_REPLY, .time=clock() };
                     this->send_reply(msg.source, mobj);
