@@ -15,6 +15,5 @@ type Neighbour struct {
 type Application interface {
 	CS_Enter(time float64)
 	CS_Leave()
-	ProcessMessage(conn net.Conn)
-	SendExit()
+	ProcessMessage(conn net.Conn, nr int, stopCh chan struct{})
 }

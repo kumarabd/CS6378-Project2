@@ -7,27 +7,28 @@ import (
 	"net"
 	"time"
 
-	"github.com/kumarabd/CS6378-Project2/go/pkg/application"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
 	"github.com/realnighthawk/bucky/logger"
 )
 
 type Lamport struct {
-	id            string
-	neighbours    map[string]*application_pkg.Neighbour
-	ReplyPending  map[string]struct{}
-	priorityQueue PriorityQueue
-	enterCS       chan struct{}
-	inCS          bool
-	log           logger.Handler
+	id              string
+	neighbours      map[string]*application_pkg.Neighbour
+	ReplyPending    map[string]struct{}
+	priorityQueue   PriorityQueue
+	enterCS         chan struct{}
+	inCS            bool
+	log             logger.Handler
+	releaseReceived int
 }
 
 func New(id string, neighbours map[string]*application_pkg.Neighbour, log logger.Handler) (*Lamport, error) {
 	lamport := Lamport{
-		id:         id,
-		neighbours: neighbours,
-		log:        log,
-		enterCS:    make(chan struct{}),
+		id:              id,
+		neighbours:      neighbours,
+		log:             log,
+		enterCS:         make(chan struct{}),
+		releaseReceived: 0,
 	}
 
 	lamport.priorityQueue = make(PriorityQueue, 0)
@@ -86,6 +87,7 @@ func (l *Lamport) CS_Leave() {
 
 	for _, target := range l.neighbours {
 		// Send targets
+		l.log.Info("sending ", msg.Type, " to ", target.ID, " at ", msg.Time)
 		err := l.send(target.ID, msg)
 		if err != nil {
 			l.log.Error(err)
@@ -96,7 +98,7 @@ func (l *Lamport) CS_Leave() {
 	l.inCS = false
 }
 
-func (l *Lamport) ProcessMessage(connection net.Conn) {
+func (l *Lamport) ProcessMessage(connection net.Conn, nr int, stopCh chan struct{}) {
 	for {
 		buffer := make([]byte, 1024)
 		mLen, err := connection.Read(buffer)
@@ -115,6 +117,7 @@ func (l *Lamport) ProcessMessage(connection net.Conn) {
 		//}
 
 		l.log.Info("received ", msg.Type, " from ", msg.Source)
+		delete(l.ReplyPending, msg.Source)
 		switch msg.Type {
 		case application_pkg.REQUEST:
 			{
@@ -139,48 +142,24 @@ func (l *Lamport) ProcessMessage(connection net.Conn) {
 				}
 				break
 			}
-		case application_pkg.REPLY:
-			{
-				delete(l.ReplyPending, msg.Source)
-				break
-			}
 		case application_pkg.RELEASE:
 			{
 				l.priorityQueue.Pop()
-				break
-			}
-		case application.EXIT:
-			{
-				for idx, item := range l.priorityQueue {
-					if item.ID == msg.Source {
-						l.priorityQueue = append(l.priorityQueue[:idx], l.priorityQueue[idx+1:]...)
-					}
-				}
-				delete(l.ReplyPending, msg.Source)
-				delete(l.neighbours, msg.Source)
+				l.releaseReceived++
+				l.log.Info("l.releaseReceived: ", l.releaseReceived)
+				l.log.Info("match: ", len(l.neighbours) == l.releaseReceived)
 				break
 			}
 		default:
 			break
 		}
-		if len(l.neighbours) > 0 && len(l.ReplyPending) == 0 && l.priorityQueue.Len() > 0 && l.priorityQueue.Top().(*Item).ID == l.id {
+		if len(l.ReplyPending) == 0 && l.priorityQueue.Len() > 0 && l.priorityQueue.Top().(*Item).ID == l.id {
 			// Enter CS
 			l.enterCS <- struct{}{}
 		}
-	}
-}
-
-func (l *Lamport) SendExit() {
-	msg := application.Message{
-		Source: l.id,
-		Type:   application.EXIT,
-		Time:   math.Floor(time.Since(time.Now()).Seconds()*1000000) / 1000000,
-	}
-	for _, target := range l.neighbours {
-		err := l.send(target.ID, msg)
-		if err != nil {
-			l.log.Error(err)
-			continue
+		if l.releaseReceived == nr*len(l.neighbours) {
+			stopCh <- struct{}{}
+			return
 		}
 	}
 }

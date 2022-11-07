@@ -13,15 +13,16 @@ import (
 )
 
 type Node struct {
-	log         logger.Handler
-	id          string
-	delay       float64
-	eTime       float64
-	numReq      int
-	neighbours  map[string]*application_pkg.Neighbour
-	application application_pkg.Application
-	mutex       *mutex_pkg.Mutex
-	Channel     *Channel
+	log             logger.Handler
+	id              string
+	delay           float64
+	eTime           float64
+	numReq          int
+	neighbours      map[string]*application_pkg.Neighbour
+	application     application_pkg.Application
+	mutex           *mutex_pkg.Mutex
+	Channel         *Channel
+	avgResponseTime float64
 }
 
 func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
@@ -49,21 +50,26 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		return nil, err
 	}
 
-	mutex, err := mutex_pkg.New(id, rand.ExpFloat64()*float64(cfg.CT))
+	rand.Seed(time.Now().UnixNano())
+	delay := rand.ExpFloat64() * float64(cfg.IR)
+	csTime := rand.ExpFloat64() * float64(cfg.CT)
+
+	mutex, err := mutex_pkg.New(id, csTime)
 	if err != nil {
 		return nil, err
 	}
 
 	node := Node{
-		log:         log,
-		id:          id,
-		delay:       rand.ExpFloat64() * float64(cfg.IR),
-		eTime:       rand.ExpFloat64() * float64(cfg.CT),
-		numReq:      cfg.R,
-		application: app,
-		mutex:       mutex,
-		Channel:     channel,
-		neighbours:  neighbours,
+		log:             log,
+		id:              id,
+		delay:           delay,
+		eTime:           csTime,
+		numReq:          cfg.R,
+		application:     app,
+		mutex:           mutex,
+		Channel:         channel,
+		neighbours:      neighbours,
+		avgResponseTime: 0.0,
 	}
 
 	node.delay = math.Floor(time.Duration(node.delay*1000000000).Seconds()*1000000) / 1000000
@@ -93,33 +99,37 @@ func (n *Node) Start() error {
 	}
 
 	// Start requests
+	n.log.Info("delay: ", n.delay)
 	startClock := time.Now()
 	prevClock := time.Now()
 	for n.numReq > 0 {
 		diff := math.Floor(time.Since(prevClock).Seconds()*1000000) / 1000000
 		if diff == n.delay {
-			curr_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-			n.log.Info("requesting cs at ", curr_clock)
-			n.application.CS_Enter(curr_clock)
+			req_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
+			n.log.Info("requesting cs at ", req_clock)
+			n.application.CS_Enter(req_clock)
 
-			curr_clock = math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-			n.log.Info("executing cs at ", curr_clock)
+			exec_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
+			n.log.Info("executing cs at ", exec_clock)
 			n.mutex.Execute_CS()
 
-			curr_clock = math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-			n.log.Info("leaving cs at ", curr_clock)
+			done_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
+			n.log.Info("leaving cs at ", done_clock)
 			n.application.CS_Leave()
+
+			// Calculate response time
+			n.avgResponseTime = (n.avgResponseTime + (done_clock - req_clock)) / 2
 
 			n.numReq--
 			prevClock = time.Now()
 		}
 	}
 
-	// Send exit to neighbours
+	//// Send exit to neighbours
 	curr_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-	n.log.Info("sending exit at ", curr_clock)
-	//n.application.SendExit()
-	//stopChan <- struct{}{}
+	n.log.Info("finished at ", curr_clock)
+	n.log.Info("average response time:  ", math.Floor(time.Duration(n.avgResponseTime*1000000000).Seconds()*1000000)/1000000)
+	<-stopChan
 	return nil
 }
 
@@ -130,7 +140,7 @@ func (n *Node) listen(ch chan struct{}) {
 			n.log.Error(err)
 			continue
 		}
-		go n.application.ProcessMessage(connection)
+		go n.application.ProcessMessage(connection, n.numReq, ch)
 	}
 }
 
