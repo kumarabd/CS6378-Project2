@@ -2,29 +2,30 @@ package node
 
 import (
 	"encoding/json"
-	"math"
 	"math/rand"
 	"net"
+	"regexp"
 	"time"
 
 	"github.com/kumarabd/CS6378-Project2/go/config"
+	"github.com/kumarabd/CS6378-Project2/go/logger"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
 	mutex_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/mutex"
 	"github.com/kumarabd/CS6378-Project2/go/pkg/ricart"
-	"github.com/realnighthawk/bucky/logger"
 )
 
 type Node struct {
 	log             logger.Handler
 	id              string
-	delay           float64
-	eTime           float64
+	delay           int64
+	eTime           int64
 	numReq          int
 	neighbours      map[string]*application_pkg.Neighbour
 	application     application_pkg.Application
 	mutex           *mutex_pkg.Mutex
 	Channel         *Channel
 	avgResponseTime float64
+	vectorTimeStamp []int64
 }
 
 func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
@@ -53,10 +54,8 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	delay := rand.ExpFloat64() * float64(cfg.IR)
-	delay = math.Floor(time.Duration(delay*1000000000).Seconds()*1000000) / 1000000
-	csTime := rand.ExpFloat64() * float64(cfg.CT)
-	csTime = math.Floor(time.Duration(csTime*1000000000).Seconds()*1000000) / 1000000
+	delay := time.Duration(int64(rand.ExpFloat64()*float64(cfg.IR)) * 1000000).Milliseconds()
+	csTime := time.Duration(int64(rand.ExpFloat64()*float64(cfg.CT)) * 1000000).Milliseconds()
 
 	mutex, err := mutex_pkg.New(id, csTime)
 	if err != nil {
@@ -74,12 +73,19 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		Channel:         channel,
 		neighbours:      neighbours,
 		avgResponseTime: 0.0,
+		vectorTimeStamp: make([]int64, 0),
 	}
 
 	return &node, nil
 }
 
 func (n *Node) Start() error {
+	// Init parameters
+	n.log.Info("delay: ", n.delay)
+	n.log.Info("execution time: ", n.eTime)
+	startClock := time.Now()
+	n.application.SetClock(startClock)
+
 	// Start server
 	stopChan := make(chan struct{})
 	go n.listen(stopChan)
@@ -99,69 +105,79 @@ func (n *Node) Start() error {
 		}
 		connected_list++
 	}
+	n.log.Info("connected")
 
 	// Start requests
-	n.log.Info("delay: ", n.delay)
-	n.log.Info("execution time: ", n.eTime)
-	startClock := time.Now()
-	n.application.SetClock(startClock)
+	nr := n.numReq
 	prevClock := time.Now()
+	startClock = time.Now()
+	n.application.SetClock(startClock)
+	n.log.WithField("clock", time.Since(startClock).Milliseconds()).Info("started")
 	for n.numReq > 0 {
-		diff := math.Floor(time.Since(prevClock).Seconds()*1000000) / 1000000
+		diff := time.Since(prevClock).Milliseconds()
 		if diff == n.delay {
-			req_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-			n.log.Info("requesting cs at ", req_clock)
-			n.application.CS_Enter(req_clock)
+			req_clock := time.Since(startClock).Milliseconds()
+			n.log.WithField("clock", req_clock).Info("requesting cs")
+			n.application.CS_Enter()
 
-			exec_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-			n.log.Info("executing cs at ", exec_clock)
+			exec_clock := time.Since(startClock).Milliseconds()
+			n.log.WithField("clock", exec_clock).Info("executing cs")
+			n.vectorTimeStamp = append(n.vectorTimeStamp, exec_clock)
 			n.mutex.Execute_CS()
 
-			done_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-			n.log.Info("leaving cs at ", done_clock)
+			done_clock := time.Since(startClock).Milliseconds()
+			n.log.WithField("clock", done_clock).Info("leaving cs")
 			n.application.CS_Leave()
 
 			// Calculate response time
-			n.avgResponseTime = (n.avgResponseTime + (done_clock - req_clock)) / 2
+			n.avgResponseTime = n.avgResponseTime + float64(done_clock-req_clock)
 
 			n.numReq--
 			prevClock = time.Now()
 		}
 	}
 
-	//// Send exit to neighbours
-	curr_clock := math.Floor(time.Since(startClock).Seconds()*1000000) / 1000000
-	n.avgResponseTime = math.Floor(time.Duration(n.avgResponseTime*1000000000).Seconds()*1000000) / 1000000
-	n.log.Info("finished at ", curr_clock)
-	n.log.Info("average response time:  ", n.avgResponseTime)
+	curr_clock := time.Since(startClock).Milliseconds()
+	n.log.WithField("clock", curr_clock).Info("finished")
+	n.log.WithField("clock", curr_clock).Info("average response time:  ", n.avgResponseTime/float64(nr))
+	n.log.WithField("clock", curr_clock).Info("vector time:  ", n.vectorTimeStamp)
 	<-stopChan
 	return nil
 }
 
 func (n *Node) listen(ch chan struct{}) {
+	nrequest := n.numReq
 	for {
 		connection, err := n.Channel.Listen()
 		if err != nil {
 			n.log.Error(err)
 			continue
 		}
-		go func(conn net.Conn) {
+		go func(conn net.Conn, nreq int) {
 			for {
-				buffer := make([]byte, 1024)
+				buffer := make([]byte, 2048)
 				mLen, err := conn.Read(buffer)
 				if err != nil {
 					n.log.Error(err)
 					return
 				}
 
-				msg := application_pkg.Message{}
-				if err = json.Unmarshal(buffer[:mLen], &msg); err != nil {
-					n.log.Error(err)
-					continue
-				}
-				go n.application.ProcessMessage(&msg, n.numReq, ch)
+				go func(d string, nr int) {
+					re := regexp.MustCompile(`\{.*?\}`)
+					segs2 := re.FindAllStringSubmatch(d, -1)
+					msgs := make([]*application_pkg.Message, 0)
+					for _, el := range segs2[0] {
+						msg := application_pkg.Message{}
+						if err = json.Unmarshal([]byte(el), &msg); err != nil {
+							n.log.Error(err)
+							continue
+						}
+						msgs = append(msgs, &msg)
+						go n.application.ProcessMessage(msgs, nr, ch)
+					}
+				}(string(buffer[:mLen]), nreq)
 			}
-		}(connection)
+		}(connection, nrequest)
 	}
 }
 

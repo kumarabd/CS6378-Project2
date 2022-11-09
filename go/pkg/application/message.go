@@ -14,7 +14,7 @@ const (
 type Message struct {
 	Source string      `json:"source"`
 	Type   MessageType `json:"type"`
-	Time   float64     `json:"time"`
+	Time   int64       `json:"time"`
 }
 
 func (m *Message) Encode() []byte {

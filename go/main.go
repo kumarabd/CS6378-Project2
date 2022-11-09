@@ -5,7 +5,7 @@ import (
 
 	"github.com/kumarabd/CS6378-Project2/go/config"
 	"github.com/kumarabd/CS6378-Project2/go/internal/node"
-	"github.com/realnighthawk/bucky/logger"
+	"github.com/kumarabd/CS6378-Project2/go/logger"
 )
 
 var (
@@ -39,8 +39,5 @@ func main() {
 	// Start node
 	log.Info("running")
 	nodeObj.Start()
-	if err != nil {
-		log.Error(err)
-	}
 	log.Info("exiting")
 }

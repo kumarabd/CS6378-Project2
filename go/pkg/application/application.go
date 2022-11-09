@@ -14,8 +14,8 @@ type Neighbour struct {
 }
 
 type Application interface {
-	CS_Enter(time float64)
+	CS_Enter()
 	CS_Leave()
-	ProcessMessage(msg *Message, nr int, stopCh chan struct{})
+	ProcessMessage(msgs []*Message, nr int, stopCh chan struct{})
 	SetClock(clock time.Time)
 }

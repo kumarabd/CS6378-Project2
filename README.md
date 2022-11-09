@@ -8,6 +8,11 @@
 - Mariam Aafreen Muhammed Moinuddin (MXM210042)
 
 ## Instruction to compile
+Go to the respective language folder:
+```
+cd go
+cd c++
+```
 Run the program:
 ```
 ./launcher.sh
