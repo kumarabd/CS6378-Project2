@@ -9,7 +9,7 @@ d = list(range(0,12,2))
 # print(d)
 
 # Input all the values for the response_time
-response_time = [1.4, 0.98, 0.47, 0.95, 0.89, 0.8]
+response_time = [21.4, 20.98, 22.47, 23.95, 21.89, 22.8]
 f1 = plt.figure(1)
 plt.plot(d, response_time, label="lamport", color='green', linewidth = 3, marker='o', markerfacecolor='blue', markersize=12)
 plt.title("Response Time Vs Mean Inter Request Delay")
@@ -49,7 +49,7 @@ cs = list(range(0,12,2))
 # print(cs)
 
 # Input all the values for the response_time
-response_time = [1.4, 0.98, 0.47, 0.95, 0.89, 0.8]
+response_time = [22.45, 22.77, 24.56, 23.59, 20.89, 21.83]
 f3 = plt.figure(3)
 plt.plot(cs, response_time, label="lamport", color='green', linewidth = 3, marker='o', markerfacecolor='blue', markersize=12)
 plt.title("Response Time Vs Mean CS Time")
