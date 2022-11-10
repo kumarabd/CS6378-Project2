@@ -19,7 +19,7 @@ plt.xlabel('Mean Inter-Request Delay (ms)')
 plt.ylabel('Response Time (ms)')
 plt.legend("Lamport Vs Ricart")
 
-# plt.savefig("RT Vs IR.png")
+plt.savefig("RT Vs IR.png")
 # plt.ylim([0, 1.5])
 
 
@@ -40,7 +40,7 @@ plt.xlabel('Mean Inter-Request Delay (ms)')
 plt.ylabel('System Throughput')
 plt.legend("Lamport Vs Ricart")
 
-# plt.savefig("ST Vs IR.png")
+plt.savefig("ST Vs IR.png")
 # plt.ylim([0, 1.5])
 
 
@@ -64,7 +64,7 @@ plt.xlabel('Mean CS Time (ms)')
 plt.ylabel('Response Time (ms)')
 plt.legend("Lamport Vs Ricart")
 
-# plt.savefig("RT Vs CS.png")
+plt.savefig("RT Vs CS.png")
 # plt.ylim([0, 1.5])
 
 
@@ -87,5 +87,5 @@ plt.ylabel('System Throughput')
 plt.legend("Lamport Vs Ricart")
 
 plt.show()
-# plt.savefig("ST Vs CS.png")
+plt.savefig("ST Vs CS.png")
 # plt.ylim([0, 1.5])
