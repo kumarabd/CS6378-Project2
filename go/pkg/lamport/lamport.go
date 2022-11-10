@@ -19,6 +19,7 @@ type Lamport struct {
 	log             logger.Handler
 	releaseReceived int
 	startTime       time.Time
+	requestTime     int64
 }
 
 func New(id string, neighbours map[string]*application_pkg.Neighbour, log logger.Handler) (*Lamport, error) {
@@ -29,6 +30,7 @@ func New(id string, neighbours map[string]*application_pkg.Neighbour, log logger
 		enterCS:         make(chan struct{}),
 		releaseReceived: 0,
 		ReplyPending:    make(map[string]struct{}),
+		requestTime:     -1,
 		inCS:            false,
 	}
 
@@ -75,10 +77,10 @@ func (l *Lamport) CS_Enter() {
 		}
 		l.ReplyPending[target.ID] = struct{}{}
 	}
+	l.requestTime = currClock
 
 	l.log.WithField("clock", currClock).Info("waiting for replies")
 	<-l.enterCS
-	l.inCS = true
 }
 
 func (l *Lamport) CS_Leave() {
@@ -100,6 +102,7 @@ func (l *Lamport) CS_Leave() {
 			continue
 		}
 	}
+	l.requestTime = -1
 
 	l.inCS = false
 }
@@ -111,7 +114,6 @@ func (l *Lamport) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh
 		switch msg.Type {
 		case application_pkg.REQUEST:
 			{
-				delete(l.ReplyPending, msg.Source)
 				item := Item{
 					ID:   msg.Source,
 					Time: msg.Time,
@@ -131,6 +133,10 @@ func (l *Lamport) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh
 						l.log.Error(err)
 					}
 				}
+
+				if l.requestTime > 0 && msg.Time > l.requestTime {
+					delete(l.ReplyPending, msg.Source)
+				}
 				break
 			}
 		case application_pkg.REPLY:
@@ -140,8 +146,10 @@ func (l *Lamport) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh
 			}
 		case application_pkg.RELEASE:
 			{
-				delete(l.ReplyPending, msg.Source)
-				l.priorityQueue.Pop()
+				if l.requestTime > 0 && msg.Time > l.requestTime {
+					delete(l.ReplyPending, msg.Source)
+				}
+				l.priorityQueue.Pop() // remove that particular process
 				l.releaseReceived++
 				break
 			}
@@ -160,6 +168,7 @@ func (l *Lamport) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh
 		if len(l.ReplyPending) == 0 && l.priorityQueue.Len() > 0 && l.priorityQueue.Top().(*Item).ID == l.id && !l.inCS {
 			// Enter CS
 			l.enterCS <- struct{}{}
+			l.inCS = true
 		}
 	}
 }

@@ -25,9 +25,7 @@ cat $CONFIGLOCAL | sed -e "s/#.*//" | sed -e "/^\s*$/d" |
     	p=$( echo $line | awk '{ print $1 }' )
         host=$( echo $line | awk '{ print $2 }' )
         case "${unameOut}" in
-            Linux*)     osascript -e 'tell app "Terminal"
-do script "ssh -i ~/.ssh/utd_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '$netid'@'$host' \"cd '$PROJDIR'; make ID='$n';./build/node-'$n'\" | tee output.txt"
-end tell' &;;
+            Linux*)     gnome-terminal -e 'ssh -i ~/.ssh/utd_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '$netid'@'$host' \"cd '$PROJDIR'; make ID='$n';./build/node-'$n'\" | tee output-'$n'.txt' &;;
             Darwin*)    osascript -e 'tell app "Terminal"
 do script "cd '$PROJDIR_LOCAL'; make ID='$n';./build/node-'$n' | tee ./build/output-'$n'.txt"
 end tell' &;;

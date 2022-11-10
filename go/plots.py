@@ -30,8 +30,8 @@ d = list(range(0,12,2))
 # print(d)
 
 # Input all the values for system_throughput
-system_throughput_lamport = [20,30,50,60,7,8]
-system_throughput_ricart = [23,33,53,63,37,38]
+system_throughput_lamport = [0.034,0.0358,0.0341,0.0357,0.034,0.0346]
+system_throughput_ricart = [0.0341,0.0328,0.0356,0.037,0.0331,0.0353]
 f2 = plt.figure(2)
 plt.plot(d, system_throughput_lamport, label="lamport", color='red', linewidth = 3, marker='d', markerfacecolor='blue', markersize=12)
 plt.plot(d, system_throughput_ricart, label="ricart", color='black', linewidth = 2, marker='o', markerfacecolor='green', markersize=12)
@@ -75,8 +75,8 @@ cs = list(range(0,12,2))
 # print(cs)
 
 # Input all the values for system_throughput
-system_throughput_lamport = [20,3,5,6,7,8]
-system_throughput_ricart = [23,33,53,63,37,38]
+system_throughput_lamport = [0.034,0.0358,0.0341,0.0357,0.034,0.0346]
+system_throughput_ricart = [0.0341,0.0328,0.0356,0.037,0.0331,0.0353]
 f4 = plt.figure(4)
 
 plt.plot(d, system_throughput_lamport, label="lamport", color='red', linewidth = 3, marker='d', markerfacecolor='blue', markersize=12)

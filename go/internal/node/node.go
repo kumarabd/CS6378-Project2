@@ -25,6 +25,7 @@ type Node struct {
 	mutex           *mutex_pkg.Mutex
 	Channel         *Channel
 	avgResponseTime float64
+	syncDelay       float64
 	vectorTimeStamp []int64
 }
 
@@ -119,6 +120,7 @@ func (n *Node) Start() error {
 			req_clock := time.Since(startClock).Milliseconds()
 			n.log.WithField("clock", req_clock).Info("requesting cs")
 			n.application.CS_Enter()
+			n.syncDelay = n.syncDelay - float64(req_clock)
 
 			exec_clock := time.Since(startClock).Milliseconds()
 			n.log.WithField("clock", exec_clock).Info("executing cs")
@@ -131,6 +133,7 @@ func (n *Node) Start() error {
 
 			// Calculate response time
 			n.avgResponseTime = n.avgResponseTime + float64(done_clock-req_clock)
+			n.syncDelay = n.syncDelay + float64(done_clock)
 
 			n.numReq--
 			prevClock = time.Now()
@@ -140,6 +143,8 @@ func (n *Node) Start() error {
 	curr_clock := time.Since(startClock).Milliseconds()
 	n.log.WithField("clock", curr_clock).Info("finished")
 	n.log.WithField("clock", curr_clock).Info("average response time:  ", n.avgResponseTime/float64(nr))
+	n.log.WithField("clock", curr_clock).Info("sync delay:  ", n.syncDelay/float64(nr))
+	n.log.WithField("clock", curr_clock).Info("throughput:  ", 1/((n.syncDelay/float64(nr))+float64(n.eTime)))
 	n.log.WithField("clock", curr_clock).Info("vector time:  ", n.vectorTimeStamp)
 	<-stopChan
 	return nil
