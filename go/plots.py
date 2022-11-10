@@ -89,6 +89,6 @@ plt.xlabel('Mean CS Time (ms)')
 plt.ylabel('System Throughput')
 plt.legend(["Lamport", "Ricart"])
 
-plt.show()
 plt.savefig("ST Vs CS.png")
+plt.show()
 # plt.ylim([0, 1.5])
