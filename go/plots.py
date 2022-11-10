@@ -17,7 +17,8 @@ plt.plot(d, response_time_ricart, label="ricart", color='red', linewidth = 2, ma
 plt.title("Response Time Vs Mean Inter Request Delay")
 plt.xlabel('Mean Inter-Request Delay (ms)')
 plt.ylabel('Response Time (ms)')
-plt.legend("Lamport Vs Ricart")
+plt.legend(["Lamport", "Ricart"])
+
 
 plt.savefig("RT Vs IR.png")
 # plt.ylim([0, 1.5])
@@ -38,7 +39,8 @@ plt.plot(d, system_throughput_ricart, label="ricart", color='black', linewidth =
 plt.title("System Throughput Vs Mean Inter Request Delay")
 plt.xlabel('Mean Inter-Request Delay (ms)')
 plt.ylabel('System Throughput')
-plt.legend("Lamport Vs Ricart")
+plt.legend(["Lamport", "Ricart"])
+
 
 plt.savefig("ST Vs IR.png")
 # plt.ylim([0, 1.5])
@@ -62,7 +64,8 @@ plt.plot(d, response_time_ricart, label="ricart", color='red', linewidth = 2, ma
 plt.title("Response Time Vs Mean CS Time")
 plt.xlabel('Mean CS Time (ms)')
 plt.ylabel('Response Time (ms)')
-plt.legend("Lamport Vs Ricart")
+plt.legend(["Lamport", "Ricart"])
+
 
 plt.savefig("RT Vs CS.png")
 # plt.ylim([0, 1.5])
@@ -84,7 +87,7 @@ plt.plot(d, system_throughput_ricart, label="ricart", color='black', linewidth =
 plt.title("System Throughput Vs Mean CS Time")
 plt.xlabel('Mean CS Time (ms)')
 plt.ylabel('System Throughput')
-plt.legend("Lamport Vs Ricart")
+plt.legend(["Lamport", "Ricart"])
 
 plt.show()
 plt.savefig("ST Vs CS.png")
