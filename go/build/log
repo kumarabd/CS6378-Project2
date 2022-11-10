@@ -1,0 +1,93 @@
+INFO[0000] logger initialized                            app=Node-1
+INFO[0000] config initialized                            app=Node-1
+INFO[0000] created node                                  app=Node-1
+INFO[0000] running                                       app=Node-1
+INFO[0000] delay: 3                                      app=Node-1
+INFO[0000] execution time: 4                             app=Node-1
+INFO[0000] connected                                     app=Node-1
+INFO[0000] started                                       app=Node-1 clock=0
+INFO[0000] received request from 0                       app=Node-1 clock=0
+INFO[0000]  msg.Time: 0                                  app=Node-1 clock=0
+INFO[0000]  l.requestTime: 0                             app=Node-1 clock=0
+INFO[0000]  l.replySent: 0                               app=Node-1 clock=0
+INFO[0000]  l.ReplyPending: map[]                        app=Node-1 clock=0
+INFO[0000] l.deferred: map[0:{}]                         app=Node-1 clock=0
+INFO[0000] match: false                                  app=Node-1 clock=0
+INFO[0000] received request from 2                       app=Node-1 clock=0
+INFO[0000]  msg.Time: 0                                  app=Node-1 clock=0
+INFO[0000]  l.requestTime: 0                             app=Node-1 clock=0
+INFO[0000]  l.replySent: 0                               app=Node-1 clock=0
+INFO[0000]  l.ReplyPending: map[]                        app=Node-1 clock=0
+INFO[0000] l.deferred: map[0:{} 2:{}]                    app=Node-1 clock=0
+INFO[0000] match: false                                  app=Node-1 clock=0
+INFO[0000] requesting cs                                 app=Node-1 clock=2
+INFO[0000] sending request to 0                          app=Node-1 clock=3
+INFO[0000] sending request to 2                          app=Node-1 clock=3
+INFO[0000] waiting for replies                           app=Node-1 clock=3
+INFO[0000] l.ReplyPending: map[0:{} 2:{}]                app=Node-1 clock=3
+INFO[0000] l.deferred: map[0:{} 2:{}]                    app=Node-1 clock=3
+INFO[0000] executing cs                                  app=Node-1 clock=3
+INFO[0000] received reply from 0                         app=Node-1 clock=3
+INFO[0000] received reply from 2                         app=Node-1 clock=3
+INFO[0000]  l.replySent: 0                               app=Node-1 clock=3
+INFO[0000]  l.ReplyPending: map[]                        app=Node-1 clock=3
+INFO[0000] l.deferred: map[0:{} 2:{}]                    app=Node-1 clock=3
+INFO[0000] match: false                                  app=Node-1 clock=3
+INFO[0000]  l.replySent: 0                               app=Node-1 clock=3
+INFO[0000]  l.ReplyPending: map[]                        app=Node-1 clock=3
+INFO[0000] l.deferred: map[0:{} 2:{}]                    app=Node-1 clock=3
+INFO[0000] match: false                                  app=Node-1 clock=3
+ERRO[0000] EOF                                           app=Node-1
+INFO[0000] leaving cs                                    app=Node-1 clock=7
+INFO[0000] sending reply to 0                            app=Node-1 clock=7
+INFO[0000] sending reply to 2                            app=Node-1 clock=7
+INFO[0000]  l.replySent: 2                               app=Node-1 clock=7
+INFO[0000]  l.ReplyPending: map[]                        app=Node-1 clock=7
+INFO[0000] l.deferred: map[]                             app=Node-1 clock=7
+INFO[0000] finished                                      app=Node-1 clock=7
+INFO[0000] average response time:  5                     app=Node-1 clock=7
+INFO[0000] vector time:  [3]                             app=Node-1 clock=7
+INFO[0000] logger initialized                            app=Node-2
+INFO[0000] config initialized                            app=Node-2
+INFO[0000] created node                                  app=Node-2
+INFO[0000] running                                       app=Node-2
+INFO[0000] delay: 0                                      app=Node-2
+INFO[0000] execution time: 2                             app=Node-2
+INFO[0000] received request from 0                       app=Node-2 clock=0
+INFO[0000]  msg.Time: 0                                  app=Node-2 clock=0
+INFO[0000]  l.requestTime: 0                             app=Node-2 clock=0
+INFO[0000]  l.replySent: 0                               app=Node-2 clock=0
+INFO[0000]  l.ReplyPending: map[]                        app=Node-2 clock=0
+INFO[0000] l.deferred: map[0:{}]                         app=Node-2 clock=0
+INFO[0000] match: false                                  app=Node-2 clock=0
+INFO[0000] connected                                     app=Node-2
+INFO[0000] started                                       app=Node-2 clock=0
+INFO[0000] requesting cs                                 app=Node-2 clock=0
+INFO[0000] sending request to 1                          app=Node-2 clock=0
+INFO[0000] sending request to 0                          app=Node-2 clock=0
+INFO[0000] waiting for replies                           app=Node-2 clock=0
+INFO[0000] l.ReplyPending: map[0:{} 1:{}]                app=Node-2 clock=0
+INFO[0000] l.deferred: map[0:{}]                         app=Node-2 clock=0
+INFO[0000] executing cs                                  app=Node-2 clock=0
+INFO[0000] received reply from 0                         app=Node-2 clock=0
+INFO[0000]  l.replySent: 0                               app=Node-2 clock=0
+INFO[0000]  l.ReplyPending: map[1:{}]                    app=Node-2 clock=0
+INFO[0000] l.deferred: map[0:{}]                         app=Node-2 clock=0
+INFO[0000] match: false                                  app=Node-2 clock=0
+INFO[0000] leaving cs                                    app=Node-2 clock=2
+INFO[0000] sending reply to 0                            app=Node-2 clock=2
+INFO[0000]  l.replySent: 1                               app=Node-2 clock=2
+INFO[0000]  l.ReplyPending: map[1:{}]                    app=Node-2 clock=2
+INFO[0000] l.deferred: map[]                             app=Node-2 clock=2
+INFO[0000] finished                                      app=Node-2 clock=2
+INFO[0000] average response time:  2                     app=Node-2 clock=2
+INFO[0000] vector time:  [0]                             app=Node-2 clock=2
+INFO[0000] received request from 1                       app=Node-2 clock=2
+INFO[0000]  msg.Time: 3                                  app=Node-2 clock=2
+INFO[0000]  l.requestTime: -1                            app=Node-2 clock=2
+INFO[0000] sending reply to 1                            app=Node-2 clock=3
+INFO[0000]  l.replySent: 2                               app=Node-2 clock=2
+INFO[0000]  l.ReplyPending: map[1:{}]                    app=Node-2 clock=2
+INFO[0000] l.deferred: map[]                             app=Node-2 clock=2
+INFO[0000] match: true                                   app=Node-2 clock=2
+INFO[0000] exiting                                       app=Node-2
