@@ -9,8 +9,8 @@ d = list(range(0,12,2))
 # print(d)
 
 # Input all the values for the response_time
-response_time_lamport = [1.4, 0.98, 0.47, 0.95, 0.89, 0.8]
-response_time_ricart = [11.4, 12.98, 10.47, 10.95, 10.89, 10.8]
+response_time_lamport = [12.23, 10.84, 11.34, 10.95, 10.39, 11.11]
+response_time_ricart = [11.4, 12.98, 10.47, 10.95, 10.89, 10.81]
 f1 = plt.figure(1)
 plt.plot(d, response_time_lamport, label="lamport", color='green', linewidth = 3, marker='o', markerfacecolor='blue', markersize=12)
 plt.plot(d, response_time_ricart, label="ricart", color='red', linewidth = 2, marker='*', markerfacecolor='black', markersize=12)
@@ -30,7 +30,7 @@ d = list(range(0,12,2))
 # print(d)
 
 # Input all the values for system_throughput
-system_throughput_lamport = [20,3,5,6,7,8]
+system_throughput_lamport = [20,30,50,60,7,8]
 system_throughput_ricart = [23,33,53,63,37,38]
 f2 = plt.figure(2)
 plt.plot(d, system_throughput_lamport, label="lamport", color='red', linewidth = 3, marker='d', markerfacecolor='blue', markersize=12)
