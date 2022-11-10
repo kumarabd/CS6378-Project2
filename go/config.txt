@@ -1,6 +1,6 @@
 # This file will consist n+1 lines
 # Number of nodes (n), mean value of inter-delay request, mean value of cs-execution time, number of requests per node
-3 2 5 1
+3 20 50 1000
 
 # Node ID, Host name, port
 # 0 dc10.utdallas.edu 8111
