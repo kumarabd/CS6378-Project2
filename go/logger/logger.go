@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -18,12 +19,18 @@ type Handler interface {
 
 // Logger is the implementation of Handler interface
 type Logger struct {
-	handler *logrus.Entry
+	fileWriter *os.File
+	handler    *logrus.Entry
 }
 
 // New instantiates bucky logger instance
 func New(appname string, opts Options) (Handler, error) {
+	f, err := os.OpenFile("./build/log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return nil, err
+	}
 
+	mw := io.MultiWriter(os.Stdout, f)
 	log := logrus.New()
 
 	//switch opts.Format {
@@ -39,7 +46,7 @@ func New(appname string, opts Options) (Handler, error) {
 	//}
 
 	// log.SetReportCaller(true)
-	log.SetOutput(os.Stdout)
+	log.SetOutput(mw)
 	entry := log.WithFields(logrus.Fields{
 		"app": appname,
 	})
