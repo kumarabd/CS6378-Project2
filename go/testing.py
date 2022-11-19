@@ -5,7 +5,7 @@ record = {}
 consistent = True
 intervals=[]
 
-print('✓ Reading log file')
+print('PASS: Reading log file')
 
 # read output log
 output_file = open('./build/log.txt', 'r')
@@ -77,42 +77,42 @@ for line in output_config_file.readlines():
         break
 
 if nodes == len(record):
-    print("✓ Number of nodes matches config")
+    print("PASS: Number of nodes matches config")
 else:
-    print("✕ Number of nodes does not match config")
+    print("FAIL: Number of nodes does not match config")
     
 if created == nodes:
-    print("✓ All nodes created")
+    print("PASS: All nodes created")
 else:
-    print("✕ Number of created nodes does not match config")
+    print("FAIL: Number of created nodes does not match config")
     
 if running == nodes:
-    print("✓ All nodes are running")
+    print("PASS: All nodes are running")
 else:
-    print("✕ Number of nodes running does not match config")    
+    print("FAIL: Number of nodes running does not match config")    
     
 if connected == nodes:
-    print("✓ All nodes are connected")
+    print("PASS: All nodes are connected")
 else:
-    print("✕ Number of connected nodes does not match config")
+    print("FAIL: Number of connected nodes does not match config")
 num_cs_flag = True
 for k in record.keys():
     if len(record[k]) != num_cs_req:
         num_cs_flag = False
         
 if num_cs_flag:
-    print("✓ Number of cs requests per node matches config")
+    print("PASS: Number of cs requests per node matches config")
 else:
-    print("✕ Number of cs requests per node does not match config")
+    print("FAIL: Number of cs requests per node does not match config")
     
 intervals.sort()
 consistent = True
 for i in range(1, len(intervals)):
     if intervals[i][0] < intervals[i-1][1]:
         consistent = False
-        print(intervals[i-1], intervals[i])
+        #print(intervals[i-1], intervals[i])
         
 if not consistent:
-    print("✕ The algorithm is not consistent")
+    print("FAIL: The algorithm is not consistent")
 else:
-    print("✓ The algorithm is consistent")
+    print("PASS: The algorithm is consistent")
