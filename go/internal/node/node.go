@@ -10,8 +10,8 @@ import (
 	"github.com/kumarabd/CS6378-Project2/go/config"
 	"github.com/kumarabd/CS6378-Project2/go/logger"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
+	"github.com/kumarabd/CS6378-Project2/go/pkg/lamport"
 	mutex_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/mutex"
-	"github.com/kumarabd/CS6378-Project2/go/pkg/ricart"
 )
 
 type Node struct {
@@ -25,6 +25,7 @@ type Node struct {
 	mutex           *mutex_pkg.Mutex
 	Channel         *Channel
 	avgResponseTime float64
+	syncDelay       float64
 	vectorTimeStamp []int64
 }
 
@@ -48,14 +49,14 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		}
 	}
 
-	app, err := ricart.New(id, neighbours, log)
+	app, err := lamport.New(id, neighbours, log)
 	if err != nil {
 		return nil, err
 	}
 
 	rand.Seed(time.Now().UnixNano())
 	delay := time.Duration(int64(rand.ExpFloat64()*float64(cfg.IR)) * 1000000).Milliseconds()
-	csTime := time.Duration(int64(rand.ExpFloat64()*float64(cfg.CT)) * 1000000).Milliseconds()
+	csTime := time.Duration(int64(rand.ExpFloat64()*float64(cfg.CT)) * 1000000 + 1).Milliseconds()
 
 	mutex, err := mutex_pkg.New(id, csTime)
 	if err != nil {
@@ -115,24 +116,29 @@ func (n *Node) Start() error {
 	n.log.WithField("clock", time.Since(startClock).Milliseconds()).Info("started")
 	for n.numReq > 0 {
 		diff := time.Since(prevClock).Milliseconds()
-		if diff == n.delay {
+		if diff >= n.delay {
 			req_clock := time.Since(startClock).Milliseconds()
 			n.log.WithField("clock", req_clock).Info("requesting cs")
 			n.application.CS_Enter()
+			n.syncDelay = n.syncDelay - float64(req_clock)
 
 			exec_clock := time.Since(startClock).Milliseconds()
-			n.log.WithField("clock", exec_clock).Info("executing cs")
+			// n.log.WithField("clock", time.Since(startClock).Milliseconds()).Info("executing cs")
+			// n.log.WithField("clock", l.scalarClock).Info("executing cs")
 			n.vectorTimeStamp = append(n.vectorTimeStamp, exec_clock)
 			n.mutex.Execute_CS()
 
 			done_clock := time.Since(startClock).Milliseconds()
-			n.log.WithField("clock", done_clock).Info("leaving cs")
+			// n.log.WithField("clock", time.Since(startClock).Milliseconds()).Info("leaving cs")
+			// n.log.WithField("clock", l.scalarClock).Info("leaving cs")
 			n.application.CS_Leave()
 
 			// Calculate response time
 			n.avgResponseTime = n.avgResponseTime + float64(done_clock-req_clock)
+			n.syncDelay = n.syncDelay + float64(done_clock)
 
 			n.numReq--
+			n.log.WithField("remaining cs requests", n.numReq).Info("completed a recent cs")
 			prevClock = time.Now()
 		}
 	}
@@ -140,6 +146,8 @@ func (n *Node) Start() error {
 	curr_clock := time.Since(startClock).Milliseconds()
 	n.log.WithField("clock", curr_clock).Info("finished")
 	n.log.WithField("clock", curr_clock).Info("average response time:  ", n.avgResponseTime/float64(nr))
+	n.log.WithField("clock", curr_clock).Info("sync delay:  ", n.syncDelay/float64(nr))
+	n.log.WithField("clock", curr_clock).Info("throughput:  ", 1/((n.syncDelay/float64(nr))+float64(n.eTime)))
 	n.log.WithField("clock", curr_clock).Info("vector time:  ", n.vectorTimeStamp)
 	<-stopChan
 	return nil
@@ -184,3 +192,4 @@ func (n *Node) listen(ch chan struct{}) {
 func (n *Node) Get_ID() string {
 	return n.id
 }
+
