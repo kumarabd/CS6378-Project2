@@ -8,7 +8,7 @@ intervals=[]
 print('✓ Reading log file')
 
 # read output log
-output_file = open('./build/log', 'r')
+output_file = open('./build/log.txt', 'r')
 
 created = 0
 running = 0

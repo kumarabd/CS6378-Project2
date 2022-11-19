@@ -10,8 +10,8 @@ import (
 	"github.com/kumarabd/CS6378-Project2/go/config"
 	"github.com/kumarabd/CS6378-Project2/go/logger"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
-	"github.com/kumarabd/CS6378-Project2/go/pkg/lamport"
 	mutex_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/mutex"
+	"github.com/kumarabd/CS6378-Project2/go/pkg/ricart"
 )
 
 type Node struct {
@@ -49,7 +49,7 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		}
 	}
 
-	app, err := lamport.New(id, neighbours, log)
+	app, err := ricart.New(id, neighbours, log)
 	if err != nil {
 		return nil, err
 	}
