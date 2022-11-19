@@ -3,14 +3,10 @@
 3 20 50 100
 
 # Node ID, Host name, port
-# 0 dc10.utdallas.edu 8111
-# 1 dc11.utdallas.edu 8111 
-# 2 dc12.utdallas.edu 8111 
-# 3 dc13.utdallas.edu 8111 
-# 4 dc14.utdallas.edu 8111 
-# 5 dc15.utdallas.edu 8111
-# 6 dc16.utdallas.edu 8111
+0 dc10.utdallas.edu 8111
+1 dc11.utdallas.edu 8111 
+2 dc12.utdallas.edu 8111
 
-0 localhost 8211
-1 localhost 8212 
-2 localhost 8213
+# 0 localhost 8211
+# 1 localhost 8212 
+# 2 localhost 8213
