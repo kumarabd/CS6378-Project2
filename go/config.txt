@@ -1,16 +1,16 @@
 # This file will consist n+1 lines
 # Number of nodes (n), mean value of inter-delay request, mean value of cs-execution time, number of requests per node
-3 2 5 1
+8 2 5 1000
 
 # Node ID, Host name, port
-0 dc10.utdallas.edu 8115
-1 dc11.utdallas.edu 8115
-2 dc12.utdallas.edu 8115
-# 3 dc13.utdallas.edu 8115
-# 4 dc14.utdallas.edu 8115
-# 5 dc15.utdallas.edu 8115
-# 6 dc16.utdallas.edu 8115
-# 7 dc17.utdallas.edu 8115
+0 dc10.utdallas.edu 8119
+1 dc11.utdallas.edu 8119
+2 dc12.utdallas.edu 8119
+3 dc13.utdallas.edu 8119
+4 dc14.utdallas.edu 8119
+5 dc15.utdallas.edu 8119
+6 dc16.utdallas.edu 8119
+7 dc17.utdallas.edu 8119
 
 # 0 localhost 8211
 # 1 localhost 8212

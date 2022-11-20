@@ -2,20 +2,18 @@ package ricart
 
 import (
 	"time"
-	"sync"
+
 	"github.com/kumarabd/CS6378-Project2/go/logger"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
+	cmap "github.com/kumarabd/CS6378-Project2/go/pkg/sync_map"
 )
-
-var wg sync.WaitGroup
-var mutex = &sync.Mutex{}
 
 type Ricart struct {
 	id           string
 	requestTime  int64
 	neighbours   map[string]*application_pkg.Neighbour
-	deferred     map[string]struct{}
-	ReplyPending map[string]struct{}
+	deferred     *cmap.SyncMap
+	ReplyPending *cmap.SyncMap
 	scalarClock  int64
 	replySent    int
 	enterCS      chan struct{}
@@ -32,9 +30,9 @@ func New(id string, neighbours map[string]*application_pkg.Neighbour, log logger
 		enterCS:      make(chan struct{}),
 		replySent:    0,
 		scalarClock:  0,
-		requestTime: 10000000,
-		deferred:     make(map[string]struct{}),
-		ReplyPending: make(map[string]struct{}),
+		requestTime:  10000000,
+		deferred:     cmap.New(),
+		ReplyPending: cmap.New(),
 		inCS:         false,
 	}
 	return &ricart, nil
@@ -69,15 +67,20 @@ func (l *Ricart) CS_Enter() {
 			l.log.Error(err)
 			continue
 		}
-		l.ReplyPending[target.ID] = struct{}{}
+		//l.ReplyPending[target.ID] = struct{}{}
+		err = l.ReplyPending.Set(target.ID, struct{}{})
+		if err != nil {
+			l.log.Error(err)
+			continue
+		}
 	}
 	time.Sleep(200 * time.Millisecond)
-	
+
 	for {
 		for _, target := range l.neighbours {
 			// Send targets
-			_, present := l.ReplyPending[target.ID]
-			if present {
+			_, err := l.ReplyPending.Get(target.ID)
+			if err == nil {
 				l.log.WithField("clock", l.scalarClock).Info("sending reattempt ", msg.Type, " to ", target.ID)
 				err := l.send(target.ID, &msg)
 				if err != nil {
@@ -87,7 +90,7 @@ func (l *Ricart) CS_Enter() {
 			}
 		}
 		time.Sleep(100 * time.Millisecond)
-		if len(l.ReplyPending) == 0 {
+		if l.ReplyPending.Size() == 0 {
 			break
 		}
 		l.log.WithField("clock", l.scalarClock).Info("waiting for replies")
@@ -110,7 +113,7 @@ func (l *Ricart) CS_Leave() {
 	}
 
 	l.requestTime = -1
-	for target, _ := range l.deferred {
+	for target, _ := range l.deferred.DeepCopy() {
 		// Send targets
 		l.log.WithField("clock", l.scalarClock).Info("sending ", msg.Type, " to ", target)
 		err := l.send(target, &msg)
@@ -120,9 +123,7 @@ func (l *Ricart) CS_Leave() {
 		}
 		l.replySent++
 	}
-	mutex.Lock()
-	l.deferred = make(map[string]struct{})
-	mutex.Unlock()
+	l.deferred = cmap.New()
 	l.log.WithField("clock", l.scalarClock).Info(" l.replySent: ", l.replySent)
 	l.log.WithField("clock", l.scalarClock).Info(" l.ReplyPending: ", l.ReplyPending)
 	l.log.WithField("clock", l.scalarClock).Info("l.deferred: ", l.deferred)
@@ -146,10 +147,10 @@ func (l *Ricart) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh 
 				// currClock := time.Since(l.startTime).Milliseconds()
 				l.log.WithField("clock", l.scalarClock).Info(" msg.Time: ", msg.Time)
 				l.log.WithField("clock", l.scalarClock).Info(" l.requestTime: ", l.requestTime)
-				
-				_, waitDependency := l.ReplyPending[msg.Source]
+
+				_, waitDependency := l.ReplyPending.Get(msg.Source)
 				// break timestamp ties with the last condition in the below if statement
-				if l.requestTime < 0 || (l.requestTime > 0 && msg.Time < l.requestTime) || (l.requestTime > 0 && (msg.Time == l.requestTime) && (msg.Source < l.id) && waitDependency) {
+				if l.requestTime < 0 || (l.requestTime > 0 && msg.Time < l.requestTime) || (l.requestTime > 0 && (msg.Time == l.requestTime) && (msg.Source < l.id) && waitDependency == nil) {
 					obj := application_pkg.Message{
 						Source: l.id,
 						Type:   application_pkg.REPLY,
@@ -163,15 +164,13 @@ func (l *Ricart) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh 
 					}
 					l.replySent++
 				} else {
-					mutex.Lock()
-					l.deferred[msg.Source] = struct{}{}
-					mutex.Unlock()
+					l.deferred.Set(msg.Source, struct{}{})
 				}
 				break
 			}
 		case application_pkg.REPLY:
 			{
-				delete(l.ReplyPending, msg.Source)
+				l.ReplyPending.Delete(msg.Source)
 				break
 			}
 		default:
@@ -185,7 +184,7 @@ func (l *Ricart) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh 
 			stopCh <- struct{}{}
 			return
 		}
-		if len(l.ReplyPending) == 0 && !l.inCS {
+		if l.ReplyPending.Size() == 0 && !l.inCS {
 			// Enter CS
 			l.enterCS <- struct{}{}
 			l.inCS = true
@@ -196,5 +195,3 @@ func (l *Ricart) ProcessMessage(msgs []*application_pkg.Message, nr int, stopCh 
 func (l *Ricart) SetClock(clock time.Time) {
 	l.startTime = clock
 }
-
-

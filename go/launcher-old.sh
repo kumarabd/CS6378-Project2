@@ -31,14 +31,6 @@ cat $CONFIGLOCAL | sed -e "s/#.*//" | sed -e "/^\s*$/d" |
 do script "ssh -i ~/.ssh/utd_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -Y '$netid'@'$host' \"cd '$PROJDIR'; make ID='$n';./build/node-'$n'\""
 end tell' &;;
         esac
-    fi
-done < config.txt
-
-for i in $(seq 1 $n)
-do
-    make ID=$i
-done
-for i in $(seq 1 $n)
-do
-    ./build/node-$i $i &
-done
+        n=$(( n + 1 ))
+    done
+)
