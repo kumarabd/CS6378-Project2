@@ -10,8 +10,8 @@ import (
 	"github.com/kumarabd/CS6378-Project2/go/config"
 	"github.com/kumarabd/CS6378-Project2/go/logger"
 	application_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/application"
-	"github.com/kumarabd/CS6378-Project2/go/pkg/lamport"
 	mutex_pkg "github.com/kumarabd/CS6378-Project2/go/pkg/mutex"
+	"github.com/kumarabd/CS6378-Project2/go/pkg/ricart"
 )
 
 type Node struct {
@@ -49,14 +49,14 @@ func New(id string, cfg config.Config, log logger.Handler) (*Node, error) {
 		}
 	}
 
-	app, err := lamport.New(id, neighbours, log)
+	app, err := ricart.New(id, neighbours, log)
 	if err != nil {
 		return nil, err
 	}
 
 	rand.Seed(time.Now().UnixNano())
 	delay := time.Duration(int64(rand.ExpFloat64()*float64(cfg.IR)) * 1000000).Milliseconds()
-	csTime := time.Duration(int64(rand.ExpFloat64()*float64(cfg.CT)) * 1000000 + 1).Milliseconds()
+	csTime := time.Duration(int64(rand.ExpFloat64()*float64(cfg.CT))*1000000 + 1).Milliseconds()
 
 	mutex, err := mutex_pkg.New(id, csTime)
 	if err != nil {
@@ -192,4 +192,3 @@ func (n *Node) listen(ch chan struct{}) {
 func (n *Node) Get_ID() string {
 	return n.id
 }
-
